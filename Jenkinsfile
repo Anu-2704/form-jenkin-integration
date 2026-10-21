@@ -2,6 +2,10 @@
 pipeline {
     agent any
 
+    options {
+        skipDefaultCheckout(true)
+    }
+
     stages {
         stage('Checkout') {
             steps {
@@ -33,8 +37,13 @@ pipeline {
 
     post {
         always {
-            junit allowEmptyResults: true,
-                  testResults: 'test-results.xml'
+            script {
+                if (fileExists('test-results.xml')) {
+                    junit testResults: 'test-results.xml'
+                } else {
+                    echo 'Test report unavailable; checkout or setup may have failed.'
+                }
+            }
         }
 
         success {
@@ -42,7 +51,7 @@ pipeline {
         }
 
         failure {
-            echo 'Build failed. Check Console Output for details.'
+            echo 'Build failed. Check the stage that failed in Console Output.'
         }
     }
 }
