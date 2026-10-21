@@ -1,45 +1,48 @@
+
 pipeline {
     agent any
 
     stages {
-
         stage('Checkout') {
             steps {
-                // Downloads the code from the GitHub repository
-                // configured in the Jenkins job.
                 checkout scm
+            }
+        }
+
+        stage('Check Python') {
+            steps {
+                bat 'python --version'
+                bat 'where python'
             }
         }
 
         stage('Setup Environment') {
             steps {
-                // Create a virtual environment and install pytest into it.
-                bat 'python --version'
                 bat 'python -m venv venv'
-                bat 'venv\\Scripts\\python -m pip install --upgrade pip'
-                bat 'venv\\Scripts\\python -m pip install -r requirements.txt'
+                bat 'venv\\Scripts\\python.exe -m pip install --upgrade pip'
+                bat 'venv\\Scripts\\python.exe -m pip install pytest'
             }
         }
 
         stage('Run Automated Tests') {
             steps {
-                // If any test fails, pytest returns a non-zero code
-                // and Jenkins marks the build as FAILED.
-                bat 'venv\\Scripts\\python -m pytest -v --junitxml=test-results.xml'
+                bat 'venv\\Scripts\\python.exe -m pytest -v --junitxml=test-results.xml'
             }
         }
     }
 
     post {
         always {
-            // Show the test results in Jenkins (even when tests fail).
-            junit allowEmptyResults: true, testResults: 'test-results.xml'
+            junit allowEmptyResults: true,
+                  testResults: 'test-results.xml'
         }
+
         success {
-            echo 'All tests passed. Build successful!'
+            echo 'All HTML form tests passed!'
         }
+
         failure {
-            echo 'Build failed. Check the Console Output and Test Result.'
+            echo 'Build failed. Check Console Output for details.'
         }
     }
 }
